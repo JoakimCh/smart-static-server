@@ -1,0 +1,20 @@
+{
+  "type": "module",
+  "files": ["source/*"],
+  "module": "source/SmartStaticServer.js",
+  "main": "source/SmartStaticServer.js",
+  "name": "smart-static-server",
+  "version": "1.0.0",
+  "author": "Joakim L. Christiansen / JLC / JoakimCh",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoakimCh/smart-static-server.git"
+  },
+  "description": "A quick way to host a static HTTP server and/or a WebSocket server.",
+  "dependencies": {
+    "mime-types": "2",
+    "ws": "7",
+    "chokidar": "3"
+  }
+}
