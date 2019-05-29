@@ -74,12 +74,13 @@ export class SmartStaticServer {// extends EventTarget {
     this._fileMap = new Map()
     this._port = port
     this._host = host
-    this._refuseConnection = false
+    // this._refuseConnection = false
     this._serve = serve
     this._watchedPaths = []
     this._wsHandler = wsHandler
     this._closeOnSigint = closeOnSigint
     this._indexFiles = indexFiles
+    this._openSockets = new Map()
 
     if (verbose) {
       this._log = console.log
@@ -107,6 +108,12 @@ export class SmartStaticServer {// extends EventTarget {
     }
 
     this._server = Http.createServer()
+    this._server.on('connection', socket => { // TCP connection
+      this._openSockets.set(socket, null) // keep track of open sockets
+      socket.on('end', () => {
+        this._openSockets.delete(socket) // remove them when they close
+      })
+    })
     this._server.on('request', this.requestHandler.bind(this))
     this._server.on('clientError', (err, socket) => {
       socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
@@ -239,16 +246,30 @@ export class SmartStaticServer {// extends EventTarget {
   }
   
   shutdown() {
-    this._refuseConnection = true
+    // this._refuseConnection = true
     this._log("Server closing...")
     if (this.wss) {
-      this.wss.close(()=>{
-        this._log("WebSocket server closed")
+      for(const client of wss.clients) { // tell clients to close
+        client.close()
+      }
+      this.wss.close(() => {
+        this._log("WebSocket server closed") // called when server really closed
       })
+      setTimeout(() => { // force closing of sockets for clients who didn't respond
+        for(const client of wss.clients) {
+          if ([client.OPEN, client.CLOSING].includes(client.readyState)) {
+            client.terminate()
+          }
+        }
+      }, 2000)
     }
     if (this._server.listening) {
-      this._server.close(()=>{
-        this._refuseConnection = false
+      for (const socket of this._openSockets) {
+        socket.end()
+        //socket.destroy()
+      }
+      this._server.close(() => {
+        // this._refuseConnection = false
         this._log("HTTP server closed")
       })
     }
@@ -262,12 +283,12 @@ export class SmartStaticServer {// extends EventTarget {
   }
 
   async requestHandler(request, response) {
-    if (this._refuseConnection) {
-      response.end() //close the response
-      request.connection.end() //close the socket
-      request.connection.destroy //close it really
-      return
-    }
+    // if (this._refuseConnection) {
+    //   response.end() //close the response
+    //   request.connection.end() //close the socket
+    //   //request.connection.destroy() //close it really
+    //   return
+    // }
     const ip = request.socket.remoteAddress
     let urlPath
     try {
