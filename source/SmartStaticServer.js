@@ -264,7 +264,7 @@ export class SmartStaticServer {// extends EventTarget {
       }, 2000)
     }
     if (this._server.listening) {
-      for (const socket of this._openSockets) {
+      for (const socket of this._openSockets.keys()) {
         socket.end()
         //socket.destroy()
       }
