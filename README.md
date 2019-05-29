@@ -19,7 +19,7 @@ can actually replace a dynamic server. 😉
 import {SmartStaticServer} from 'smart-static-server'
 
 const server = new SmartStaticServer({
-  address: 'localhost',
+  host: 'localhost',
   port: 8080,
   wsHandler: wsHandler, 
   serve: [
