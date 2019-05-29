@@ -1,4 +1,3 @@
-'use strict'
 
 import * as Http from 'http'
 import {promises as Fs} from 'fs' // https://nodejs.org/dist/latest-v12.x/docs/api/fs.html#fs_fs_promises_api
@@ -177,6 +176,7 @@ export class SmartStaticServer {// extends EventTarget {
             for (let serve of this._serve) {
               if (serve.dir.startsWith('./')) serve.dir = serve.dir.substring(2, serve.dir.length)
               if (!serve.dir.endsWith('/')) serve.dir += '/'
+              if (!serve.as.startsWith('/')) serve.as = '/'+serve.as
               if (!serve.as.endsWith('/')) serve.as += '/'
               let dirStat
               try {
